@@ -4,7 +4,7 @@ import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
 import '../../core/models/note_model.dart';
 import '../../services/note_service.dart';
-import 'note_detail_screen.dart';
+import '../note_detail_screen/note_detail_screen.dart';
 import 'add_edit_note_screen.dart';
 import 'package:intl/intl.dart';
 
@@ -69,8 +69,9 @@ class _NoteListScreenState extends State<NoteListScreen> {
                   context,
                   MaterialPageRoute(
                     builder: (_) => NoteDetailScreen(
-                      note: notes[i],
+                      noteId: notes[i].id,
                       noteService: noteService,
+                      initialNote: notes[i],
                     ),
                   ),
                 ),
@@ -131,11 +132,50 @@ class _NoteCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(note.merchant, style: AppTextStyles.heading2),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Expanded(
+                          child: Text(
+                            note.merchant,
+                            style: AppTextStyles.heading2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        Text(
+                          note.products
+                              .fold<double>(0, (sum, p) => sum + p.total)
+                              .toStringAsFixed(2),
+                          style: AppTextStyles.heading2.copyWith(
+                            color: AppColors.odooPurple,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                    // Text(
+                    //   '${note.farms} • #${note.trackNumber}',
+                    //   style: AppTextStyles.bodySecondary,
+                    // ),
+                    Text(
+                      'المزرعة: ${note.farms}',
+                      style: AppTextStyles.caption,
+                    ),
                     const SizedBox(height: 4),
                     Text(
-                      '${note.farms} • #${note.trackNumber}',
-                      style: AppTextStyles.bodySecondary,
+                      'رقم المسار: ${note.trackNumber}',
+                      style: AppTextStyles.caption,
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'اسم المستخدم: ${note.userName}',
+                      style: AppTextStyles.caption,
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'المنتجات: ${note.products.length}',
+                      style: AppTextStyles.caption,
                     ),
                     const SizedBox(height: 8),
                     // Status Chip & Date

@@ -81,17 +81,15 @@ class $NotesTableTable extends NotesTable
     type: DriftSqlType.string,
     requiredDuringInsert: true,
   );
-  static const VerificationMeta _productsMeta = const VerificationMeta(
-    'products',
-  );
   @override
-  late final GeneratedColumn<String> products = GeneratedColumn<String>(
-    'products',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-  );
+  late final GeneratedColumnWithTypeConverter<List<Product>, String> products =
+      GeneratedColumn<String>(
+        'products',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: true,
+      ).withConverter<List<Product>>($NotesTableTable.$converterproducts);
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -172,14 +170,6 @@ class $NotesTableTable extends NotesTable
     } else if (isInserting) {
       context.missing(_userNameMeta);
     }
-    if (data.containsKey('products')) {
-      context.handle(
-        _productsMeta,
-        products.isAcceptableOrUnknown(data['products']!, _productsMeta),
-      );
-    } else if (isInserting) {
-      context.missing(_productsMeta);
-    }
     return context;
   }
 
@@ -217,10 +207,12 @@ class $NotesTableTable extends NotesTable
         DriftSqlType.string,
         data['${effectivePrefix}user_name'],
       )!,
-      products: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}products'],
-      )!,
+      products: $NotesTableTable.$converterproducts.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}products'],
+        )!,
+      ),
     );
   }
 
@@ -228,6 +220,9 @@ class $NotesTableTable extends NotesTable
   $NotesTableTable createAlias(String alias) {
     return $NotesTableTable(attachedDatabase, alias);
   }
+
+  static TypeConverter<List<Product>, String> $converterproducts =
+      const ProductListConverter();
 }
 
 class NotesTableData extends DataClass implements Insertable<NotesTableData> {
@@ -253,7 +248,7 @@ class NotesTableData extends DataClass implements Insertable<NotesTableData> {
   final String userName;
 
   /// Products string (serialised list).
-  final String products;
+  final List<Product> products;
   const NotesTableData({
     required this.id,
     required this.status,
@@ -274,7 +269,11 @@ class NotesTableData extends DataClass implements Insertable<NotesTableData> {
     map['track_number'] = Variable<int>(trackNumber);
     map['creation_date'] = Variable<DateTime>(creationDate);
     map['user_name'] = Variable<String>(userName);
-    map['products'] = Variable<String>(products);
+    {
+      map['products'] = Variable<String>(
+        $NotesTableTable.$converterproducts.toSql(products),
+      );
+    }
     return map;
   }
 
@@ -304,7 +303,7 @@ class NotesTableData extends DataClass implements Insertable<NotesTableData> {
       trackNumber: serializer.fromJson<int>(json['trackNumber']),
       creationDate: serializer.fromJson<DateTime>(json['creationDate']),
       userName: serializer.fromJson<String>(json['userName']),
-      products: serializer.fromJson<String>(json['products']),
+      products: serializer.fromJson<List<Product>>(json['products']),
     );
   }
   @override
@@ -318,7 +317,7 @@ class NotesTableData extends DataClass implements Insertable<NotesTableData> {
       'trackNumber': serializer.toJson<int>(trackNumber),
       'creationDate': serializer.toJson<DateTime>(creationDate),
       'userName': serializer.toJson<String>(userName),
-      'products': serializer.toJson<String>(products),
+      'products': serializer.toJson<List<Product>>(products),
     };
   }
 
@@ -330,7 +329,7 @@ class NotesTableData extends DataClass implements Insertable<NotesTableData> {
     int? trackNumber,
     DateTime? creationDate,
     String? userName,
-    String? products,
+    List<Product>? products,
   }) => NotesTableData(
     id: id ?? this.id,
     status: status ?? this.status,
@@ -406,7 +405,7 @@ class NotesTableCompanion extends UpdateCompanion<NotesTableData> {
   final Value<int> trackNumber;
   final Value<DateTime> creationDate;
   final Value<String> userName;
-  final Value<String> products;
+  final Value<List<Product>> products;
   final Value<int> rowid;
   const NotesTableCompanion({
     this.id = const Value.absent(),
@@ -427,7 +426,7 @@ class NotesTableCompanion extends UpdateCompanion<NotesTableData> {
     required int trackNumber,
     required DateTime creationDate,
     required String userName,
-    required String products,
+    required List<Product> products,
     this.rowid = const Value.absent(),
   }) : id = Value(id),
        farms = Value(farms),
@@ -468,7 +467,7 @@ class NotesTableCompanion extends UpdateCompanion<NotesTableData> {
     Value<int>? trackNumber,
     Value<DateTime>? creationDate,
     Value<String>? userName,
-    Value<String>? products,
+    Value<List<Product>>? products,
     Value<int>? rowid,
   }) {
     return NotesTableCompanion(
@@ -509,7 +508,9 @@ class NotesTableCompanion extends UpdateCompanion<NotesTableData> {
       map['user_name'] = Variable<String>(userName.value);
     }
     if (products.present) {
-      map['products'] = Variable<String>(products.value);
+      map['products'] = Variable<String>(
+        $NotesTableTable.$converterproducts.toSql(products.value),
+      );
     }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
@@ -555,7 +556,7 @@ typedef $$NotesTableTableCreateCompanionBuilder =
       required int trackNumber,
       required DateTime creationDate,
       required String userName,
-      required String products,
+      required List<Product> products,
       Value<int> rowid,
     });
 typedef $$NotesTableTableUpdateCompanionBuilder =
@@ -567,7 +568,7 @@ typedef $$NotesTableTableUpdateCompanionBuilder =
       Value<int> trackNumber,
       Value<DateTime> creationDate,
       Value<String> userName,
-      Value<String> products,
+      Value<List<Product>> products,
       Value<int> rowid,
     });
 
@@ -615,9 +616,10 @@ class $$NotesTableTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<String> get products => $composableBuilder(
+  ColumnWithTypeConverterFilters<List<Product>, List<Product>, String>
+  get products => $composableBuilder(
     column: $table.products,
-    builder: (column) => ColumnFilters(column),
+    builder: (column) => ColumnWithTypeConverterFilters(column),
   );
 }
 
@@ -705,7 +707,7 @@ class $$NotesTableTableAnnotationComposer
   GeneratedColumn<String> get userName =>
       $composableBuilder(column: $table.userName, builder: (column) => column);
 
-  GeneratedColumn<String> get products =>
+  GeneratedColumnWithTypeConverter<List<Product>, String> get products =>
       $composableBuilder(column: $table.products, builder: (column) => column);
 }
 
@@ -747,7 +749,7 @@ class $$NotesTableTableTableManager
                 Value<int> trackNumber = const Value.absent(),
                 Value<DateTime> creationDate = const Value.absent(),
                 Value<String> userName = const Value.absent(),
-                Value<String> products = const Value.absent(),
+                Value<List<Product>> products = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => NotesTableCompanion(
                 id: id,
@@ -769,7 +771,7 @@ class $$NotesTableTableTableManager
                 required int trackNumber,
                 required DateTime creationDate,
                 required String userName,
-                required String products,
+                required List<Product> products,
                 Value<int> rowid = const Value.absent(),
               }) => NotesTableCompanion.insert(
                 id: id,

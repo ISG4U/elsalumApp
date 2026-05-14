@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:developer';
 import 'package:flutter/foundation.dart';
 import 'package:uuid/uuid.dart';
 import 'package:drift/drift.dart' show Value;
@@ -25,6 +26,10 @@ class NoteService {
     });
   }
 
+  /// Watch a single note by ID (reactive).
+  Stream<NotesTableData?> watchNoteById(String id) =>
+      _db.notesDao.watchNoteById(id);
+
   // ── Helpers ──────────────────────────────────────────────────────────────
 
   NoteStatus statusFromData(NotesTableData d) => NoteStatus.fromValue(d.status);
@@ -36,7 +41,7 @@ class NoteService {
     required String merchant,
     required int trackNumber,
     required String userName,
-    required String products,
+    required List<Product> products,
   }) async {
     isLoading.value = true;
     try {
@@ -65,7 +70,7 @@ class NoteService {
     required String merchant,
     required int trackNumber,
     required String userName,
-    required String products,
+    required List<Product> products,
     int? status,
   }) async {
     isLoading.value = true;
@@ -96,6 +101,20 @@ class NoteService {
     try {
       await _db.notesDao.deleteNote(id);
     } catch (e) {
+      error.value = e.toString();
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  Future<void> updateNoteStatus(String id, int newStatus) async {
+    isLoading.value = true;
+    try {
+      await _db.notesDao.partialUpdateNote(
+        NotesTableCompanion(id: Value(id), status: Value(newStatus)),
+      );
+    } catch (e) {
+      log('error in updateNoteStatus: $e');
       error.value = e.toString();
     } finally {
       isLoading.value = false;

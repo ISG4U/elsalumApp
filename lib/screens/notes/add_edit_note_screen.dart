@@ -1,8 +1,11 @@
+import 'package:elsalum_app/screens/notes/product_list_item.dart';
 import 'package:flutter/material.dart';
 import '../../core/database/app_database.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
 import '../../services/note_service.dart';
+import '../../core/models/note_model.dart';
+import 'add_product_screen.dart';
 
 class AddEditNoteScreen extends StatefulWidget {
   final NoteService noteService;
@@ -25,7 +28,7 @@ class _AddEditNoteScreenState extends State<AddEditNoteScreen> {
   late final TextEditingController _merchantCtrl;
   late final TextEditingController _trackNumCtrl;
   late final TextEditingController _userNameCtrl;
-  late final TextEditingController _productsCtrl;
+  List<Product> _products = [];
 
   @override
   void initState() {
@@ -42,9 +45,7 @@ class _AddEditNoteScreenState extends State<AddEditNoteScreen> {
     _userNameCtrl = TextEditingController(
       text: widget.existingNote?.userName ?? '',
     );
-    _productsCtrl = TextEditingController(
-      text: widget.existingNote?.products ?? '',
-    );
+    _products = widget.existingNote?.products ?? [];
   }
 
   @override
@@ -53,7 +54,6 @@ class _AddEditNoteScreenState extends State<AddEditNoteScreen> {
     _merchantCtrl.dispose();
     _trackNumCtrl.dispose();
     _userNameCtrl.dispose();
-    _productsCtrl.dispose();
     super.dispose();
   }
 
@@ -64,7 +64,13 @@ class _AddEditNoteScreenState extends State<AddEditNoteScreen> {
     final merchant = _merchantCtrl.text.trim();
     final trackNumber = int.tryParse(_trackNumCtrl.text.trim()) ?? 0;
     final userName = _userNameCtrl.text.trim();
-    final products = _productsCtrl.text.trim();
+
+    if (_products.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('يرجى إضافة منتج واحد على الأقل')),
+      );
+      return;
+    }
 
     if (widget.existingNote == null) {
       await widget.noteService.addNote(
@@ -72,7 +78,7 @@ class _AddEditNoteScreenState extends State<AddEditNoteScreen> {
         merchant: merchant,
         trackNumber: trackNumber,
         userName: userName,
-        products: products,
+        products: _products,
       );
     } else {
       await widget.noteService.editNote(
@@ -81,7 +87,7 @@ class _AddEditNoteScreenState extends State<AddEditNoteScreen> {
         merchant: merchant,
         trackNumber: trackNumber,
         userName: userName,
-        products: products,
+        products: _products,
       );
     }
 
@@ -129,11 +135,11 @@ class _AddEditNoteScreenState extends State<AddEditNoteScreen> {
                     const SizedBox(height: 16),
                     _buildTextField(
                       controller: _trackNumCtrl,
-                      label: 'رقم التتبع',
+                      label: 'رقم المسار',
                       icon: Icons.numbers,
                       keyboardType: TextInputType.number,
                       validator: (v) => v == null || v.isEmpty
-                          ? 'يرجى إدخال رقم التتبع'
+                          ? 'يرجى إدخال رقم المسار'
                           : null,
                     ),
                     const SizedBox(height: 16),
@@ -148,15 +154,24 @@ class _AddEditNoteScreenState extends State<AddEditNoteScreen> {
                   ],
                 ),
                 const SizedBox(height: 16),
+                _buildProductSection(),
+                const SizedBox(height: 16),
                 _buildCard(
                   children: [
-                    _buildTextField(
-                      controller: _productsCtrl,
-                      label: 'المنتجات',
-                      icon: Icons.inventory,
-                      maxLines: 4,
-                      validator: (v) =>
-                          v == null || v.isEmpty ? 'يرجى إدخال المنتجات' : null,
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text('إجمالي الفاتورة', style: AppTextStyles.heading2),
+                        Text(
+                          _products
+                              .fold<double>(0, (sum, p) => sum + p.total)
+                              .toStringAsFixed(2),
+                          style: AppTextStyles.heading2.copyWith(
+                            color: AppColors.odooPurple,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
@@ -192,6 +207,101 @@ class _AddEditNoteScreenState extends State<AddEditNoteScreen> {
         ),
       ),
     );
+  }
+
+  Widget _buildProductSection() {
+    return _buildCard(
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text('المنتجات', style: AppTextStyles.heading2),
+            IconButton(
+              onPressed: _addProduct,
+              icon: const Icon(Icons.add_circle, color: AppColors.odooPurple),
+            ),
+          ],
+        ),
+        const Divider(),
+        if (_products.isEmpty)
+          const Padding(
+            padding: EdgeInsets.symmetric(vertical: 20),
+            child: Center(
+              child: Text(
+                'لم يتم إضافة منتجات',
+                style: AppTextStyles.bodySecondary,
+              ),
+            ),
+          )
+        else
+          ListView.separated(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: _products.length,
+            separatorBuilder: (context, index) => const Divider(height: 1),
+            itemBuilder: (context, index) {
+              final prod = _products[index];
+              return ProductListItem(
+                product: prod,
+                onEdit: () => _editProduct(index),
+                onDelete: () => _deleteProduct(index),
+              );
+            },
+          ),
+      ],
+    );
+  }
+
+  void _addProduct() async {
+    final result = await Navigator.push<Product>(
+      context,
+      MaterialPageRoute(builder: (_) => const AddProductScreen()),
+    );
+    if (result != null) {
+      setState(() => _products.add(result));
+    }
+  }
+
+  void _editProduct(int index) async {
+    final result = await Navigator.push<Product>(
+      context,
+      MaterialPageRoute(
+        builder: (_) => AddProductScreen(existingProduct: _products[index]),
+      ),
+    );
+    if (result != null) {
+      setState(() => _products[index] = result);
+    }
+  }
+
+  void _deleteProduct(int index) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('حذف المنتج', style: AppTextStyles.heading2),
+        content: Text(
+          'هل أنت متأكد من حذف ${(_products[index].name)}؟',
+          style: AppTextStyles.body,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('إلغاء'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text(
+              'حذف',
+              style: TextStyle(color: AppColors.odooError),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      setState(() => _products.removeAt(index));
+    }
   }
 
   Widget _buildCard({required List<Widget> children}) {

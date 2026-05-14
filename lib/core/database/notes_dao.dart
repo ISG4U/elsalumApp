@@ -10,14 +10,21 @@ class NotesDao extends DatabaseAccessor<AppDatabase> with _$NotesDaoMixin {
 
   // ── Read ──────────────────────────────────────────────────────────────────
 
-  /// Stream of all notes ordered by creation date descending (newest first).
-  Stream<List<NotesTableData>> watchAllNotes() => (select(
-    notesTable,
-  )..orderBy([(t) => OrderingTerm.desc(t.creationDate)])).watch();
+  /// Stream of all notes ordered by status (new first) and creation date descending.
+  Stream<List<NotesTableData>> watchAllNotes() =>
+      (select(notesTable)..orderBy([
+            (t) => OrderingTerm.asc(t.status),
+            (t) => OrderingTerm.desc(t.creationDate),
+          ]))
+          .watch();
 
   /// Fetch a single note by its UUID id; returns null if not found.
   Future<NotesTableData?> getNoteById(String id) =>
       (select(notesTable)..where((t) => t.id.equals(id))).getSingleOrNull();
+
+  /// Watch a single note by its UUID id (reactive).
+  Stream<NotesTableData?> watchNoteById(String id) =>
+      (select(notesTable)..where((t) => t.id.equals(id))).watchSingleOrNull();
 
   // ── Write ─────────────────────────────────────────────────────────────────
 
@@ -25,9 +32,14 @@ class NotesDao extends DatabaseAccessor<AppDatabase> with _$NotesDaoMixin {
   Future<void> insertNote(NotesTableCompanion entry) =>
       into(notesTable).insert(entry);
 
-  /// Replace an existing note with updated data.
+  /// Replace an existing note with updated data (requires full entity).
   Future<bool> updateNote(NotesTableCompanion entry) =>
       update(notesTable).replace(entry);
+
+  /// Update only the provided fields in the note companion.
+  Future<int> partialUpdateNote(NotesTableCompanion entry) => (update(
+    notesTable,
+  )..where((t) => t.id.equals(entry.id.value))).write(entry);
 
   // ── Delete ────────────────────────────────────────────────────────────────
 

@@ -1,8 +1,10 @@
+import 'dart:convert';
 import 'dart:io';
 import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
+import '../models/note_model.dart';
 import 'notes_dao.dart';
 
 part 'app_database.g.dart';
@@ -19,7 +21,7 @@ part 'app_database.g.dart';
 ///   trackNumber  – int
 ///   creationDate – DateTime (stored as Unix ms by Drift)
 ///   userName     – string
-///   products     – string (comma-separated or JSON)
+///   products     – string (JSON array of [Product])
 class NotesTable extends Table {
   /// UUID v4 primary key – safe for offline-first sync.
   TextColumn get id => text()();
@@ -43,7 +45,7 @@ class NotesTable extends Table {
   TextColumn get userName => text()();
 
   /// Products string (serialised list).
-  TextColumn get products => text()();
+  TextColumn get products => text().map(const ProductListConverter())();
 
   @override
   Set<Column> get primaryKey => {id};
@@ -71,4 +73,27 @@ LazyDatabase _openConnection() {
     final file = File(p.join(dir.path, 'elsalum_notes.db'));
     return NativeDatabase.createInBackground(file);
   });
+}
+
+// ─── Converters ──────────────────────────────────────────────────────────────
+
+class ProductListConverter extends TypeConverter<List<Product>, String> {
+  const ProductListConverter();
+
+  @override
+  List<Product> fromSql(String fromDb) {
+    try {
+      final List<dynamic> decoded = json.decode(fromDb) as List<dynamic>;
+      return decoded
+          .map((e) => Product.fromJson(e as Map<String, dynamic>))
+          .toList();
+    } catch (e) {
+      return [];
+    }
+  }
+
+  @override
+  String toSql(List<Product> value) {
+    return json.encode(value.map((e) => e.toJson()).toList());
+  }
 }
