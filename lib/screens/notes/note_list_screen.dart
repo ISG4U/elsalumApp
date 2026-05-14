@@ -11,6 +11,8 @@ import '../../services/webview_service.dart';
 import '../../services/connectivity_service.dart';
 import '../../core/utils/chach_service.dart';
 import '../mode_selection_screen.dart';
+import '../../services/note_filter_service.dart';
+import 'widgets/note_filter_dialog.dart';
 
 class NoteListScreen extends StatefulWidget {
   final WebviewService webviewService;
@@ -28,6 +30,7 @@ class NoteListScreen extends StatefulWidget {
 
 class _NoteListScreenState extends State<NoteListScreen> {
   final NoteService noteService = NoteService();
+  final NoteFilterService filterService = NoteFilterService();
 
   @override
   void initState() {
@@ -38,6 +41,7 @@ class _NoteListScreenState extends State<NoteListScreen> {
   @override
   void dispose() {
     noteService.dispose();
+    filterService.filterOptions.dispose();
     super.dispose();
   }
 
@@ -63,6 +67,21 @@ class _NoteListScreenState extends State<NoteListScreen> {
       child: Scaffold(
         appBar: AppBar(
           title: const Text('الملاحظات', style: AppTextStyles.heading2),
+          actions: [
+            ValueListenableBuilder<NoteFilterOptions>(
+              valueListenable: filterService.filterOptions,
+              builder: (context, options, _) {
+                final isActive = !options.isEmpty;
+                return IconButton(
+                  icon: Icon(
+                    Icons.filter_list,
+                    color: isActive ? AppColors.odooPurple : null,
+                  ),
+                  onPressed: _openFilterDialog,
+                );
+              },
+            ),
+          ],
         ),
         backgroundColor: AppColors.background,
         floatingActionButton: FloatingActionButton(
@@ -78,31 +97,37 @@ class _NoteListScreenState extends State<NoteListScreen> {
         body: ValueListenableBuilder<List<NotesTableData>>(
           valueListenable: noteService.notes,
           builder: (context, notes, _) {
-            if (notes.isEmpty) {
-              return const Center(
-                child: Text(
-                  'لا توجد ملاحظات',
-                  style: AppTextStyles.bodySecondary,
-                ),
-              );
-            }
-            return ListView.builder(
-              padding: const EdgeInsets.all(12),
-              itemCount: notes.length,
-              itemBuilder: (context, i) {
-                return _NoteCard(
-                  note: notes[i],
-                  noteService: noteService,
-                  onTap: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => NoteDetailScreen(
-                        noteId: notes[i].id,
-                        noteService: noteService,
-                        initialNote: notes[i],
-                      ),
+            return ValueListenableBuilder<NoteFilterOptions>(
+              valueListenable: filterService.filterOptions,
+              builder: (context, filterOptions, _) {
+                final filteredNotes = filterService.applyFilter(notes);
+                if (filteredNotes.isEmpty) {
+                  return const Center(
+                    child: Text(
+                      'لا توجد ملاحظات',
+                      style: AppTextStyles.bodySecondary,
                     ),
-                  ),
+                  );
+                }
+                return ListView.builder(
+                  padding: const EdgeInsets.all(12),
+                  itemCount: filteredNotes.length,
+                  itemBuilder: (context, i) {
+                    return _NoteCard(
+                      note: filteredNotes[i],
+                      noteService: noteService,
+                      onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => NoteDetailScreen(
+                            noteId: filteredNotes[i].id,
+                            noteService: noteService,
+                            initialNote: filteredNotes[i],
+                          ),
+                        ),
+                      ),
+                    );
+                  },
                 );
               },
             );
@@ -110,6 +135,17 @@ class _NoteListScreenState extends State<NoteListScreen> {
         ),
       ),
     );
+  }
+
+  void _openFilterDialog() async {
+    final result = await showDialog<NoteFilterOptions>(
+      context: context,
+      builder: (ctx) =>
+          NoteFilterDialog(currentOptions: filterService.filterOptions.value),
+    );
+    if (result != null) {
+      filterService.updateFilter(result);
+    }
   }
 }
 

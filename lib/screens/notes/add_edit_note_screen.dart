@@ -6,6 +6,7 @@ import '../../core/theme/app_text_styles.dart';
 import '../../services/note_service.dart';
 import '../../core/models/note_model.dart';
 import 'add_product_screen.dart';
+import 'widgets/note_metadata_fields.dart';
 
 class AddEditNoteScreen extends StatefulWidget {
   final NoteService noteService;
@@ -113,50 +114,16 @@ class _AddEditNoteScreenState extends State<AddEditNoteScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                _buildCard(
-                  children: [
-                    _buildTextField(
-                      controller: _merchantCtrl,
-                      label: 'التاجر',
-                      icon: Icons.person,
-                      validator: (v) => v == null || v.isEmpty
-                          ? 'يرجى إدخال اسم التاجر'
-                          : null,
-                    ),
-                    const SizedBox(height: 16),
-                    _buildTextField(
-                      controller: _farmsCtrl,
-                      label: 'المزارع',
-                      icon: Icons.landscape,
-                      validator: (v) => v == null || v.isEmpty
-                          ? 'يرجى إدخال اسم المزرعة'
-                          : null,
-                    ),
-                    const SizedBox(height: 16),
-                    _buildTextField(
-                      controller: _trackNumCtrl,
-                      label: 'رقم المسار',
-                      icon: Icons.numbers,
-                      keyboardType: TextInputType.number,
-                      validator: (v) => v == null || v.isEmpty
-                          ? 'يرجى إدخال رقم المسار'
-                          : null,
-                    ),
-                    const SizedBox(height: 16),
-                    _buildTextField(
-                      controller: _userNameCtrl,
-                      label: 'اسم المستخدم',
-                      icon: Icons.account_circle,
-                      validator: (v) => v == null || v.isEmpty
-                          ? 'يرجى إدخال اسم المستخدم'
-                          : null,
-                    ),
-                  ],
+                NoteMetadataFields(
+                  merchantCtrl: _merchantCtrl,
+                  farmsCtrl: _farmsCtrl,
+                  trackNumCtrl: _trackNumCtrl,
+                  userNameCtrl: _userNameCtrl,
                 ),
                 const SizedBox(height: 16),
                 _buildProductSection(),
                 const SizedBox(height: 16),
-                _buildCard(
+                NoteMetadataFields.buildCard(
                   children: [
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -210,7 +177,7 @@ class _AddEditNoteScreenState extends State<AddEditNoteScreen> {
   }
 
   Widget _buildProductSection() {
-    return _buildCard(
+    return NoteMetadataFields.buildCard(
       children: [
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -302,54 +269,5 @@ class _AddEditNoteScreenState extends State<AddEditNoteScreen> {
     if (confirmed == true) {
       setState(() => _products.removeAt(index));
     }
-  }
-
-  Widget _buildCard({required List<Widget> children}) {
-    return Card(
-      color: AppColors.surface,
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: children,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildTextField({
-    required TextEditingController controller,
-    required String label,
-    required IconData icon,
-    int maxLines = 1,
-    TextInputType? keyboardType,
-    String? Function(String?)? validator,
-  }) {
-    return TextFormField(
-      controller: controller,
-      maxLines: maxLines,
-      keyboardType: keyboardType,
-      validator: validator,
-      style: AppTextStyles.body,
-      decoration: InputDecoration(
-        labelText: label,
-        labelStyle: AppTextStyles.bodySecondary,
-        prefixIcon: Icon(icon, color: AppColors.odooPurple),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
-          borderSide: const BorderSide(color: AppColors.divider),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
-          borderSide: const BorderSide(color: AppColors.divider),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
-          borderSide: const BorderSide(color: AppColors.odooPurple),
-        ),
-      ),
-    );
   }
 }
