@@ -8,11 +8,13 @@ import 'offline_screen.dart';
 class MainScreen extends StatefulWidget {
   final WebviewService webviewService;
   final ConnectivityService connectivityService;
+  // final NoteService noteService;
 
   const MainScreen({
     super.key,
     required this.webviewService,
     required this.connectivityService,
+    // required this.noteService,
   });
 
   @override
