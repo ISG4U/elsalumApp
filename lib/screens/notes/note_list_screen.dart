@@ -7,9 +7,20 @@ import '../../services/note_service.dart';
 import '../note_detail_screen/note_detail_screen.dart';
 import 'add_edit_note_screen.dart';
 import 'package:intl/intl.dart';
+import '../../services/webview_service.dart';
+import '../../services/connectivity_service.dart';
+import '../../core/utils/chach_service.dart';
+import '../mode_selection_screen.dart';
 
 class NoteListScreen extends StatefulWidget {
-  const NoteListScreen({super.key});
+  final WebviewService webviewService;
+  final ConnectivityService connectivityService;
+
+  const NoteListScreen({
+    super.key,
+    required this.webviewService,
+    required this.connectivityService,
+  });
 
   @override
   State<NoteListScreen> createState() => _NoteListScreenState();
@@ -32,53 +43,71 @@ class _NoteListScreenState extends State<NoteListScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('الملاحظات', style: AppTextStyles.heading2),
-      ),
-      backgroundColor: AppColors.background,
-      floatingActionButton: FloatingActionButton(
-        backgroundColor: AppColors.fabColor,
-        child: const Icon(Icons.add, color: AppColors.textOnPrimary),
-        onPressed: () => Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) => AddEditNoteScreen(noteService: noteService),
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) async {
+        if (didPop) return;
+        await CacheService.removeData(key: CacheService.keyOpenMode);
+        if (context.mounted) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (_) => ModeSelectionScreen(
+                webviewService: widget.webviewService,
+                connectivityService: widget.connectivityService,
+              ),
+            ),
+          );
+        }
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text('الملاحظات', style: AppTextStyles.heading2),
+        ),
+        backgroundColor: AppColors.background,
+        floatingActionButton: FloatingActionButton(
+          backgroundColor: AppColors.fabColor,
+          child: const Icon(Icons.add, color: AppColors.textOnPrimary),
+          onPressed: () => Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => AddEditNoteScreen(noteService: noteService),
+            ),
           ),
         ),
-      ),
-      body: ValueListenableBuilder<List<NotesTableData>>(
-        valueListenable: noteService.notes,
-        builder: (context, notes, _) {
-          if (notes.isEmpty) {
-            return const Center(
-              child: Text(
-                'لا توجد ملاحظات',
-                style: AppTextStyles.bodySecondary,
-              ),
-            );
-          }
-          return ListView.builder(
-            padding: const EdgeInsets.all(12),
-            itemCount: notes.length,
-            itemBuilder: (context, i) {
-              return _NoteCard(
-                note: notes[i],
-                noteService: noteService,
-                onTap: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => NoteDetailScreen(
-                      noteId: notes[i].id,
-                      noteService: noteService,
-                      initialNote: notes[i],
-                    ),
-                  ),
+        body: ValueListenableBuilder<List<NotesTableData>>(
+          valueListenable: noteService.notes,
+          builder: (context, notes, _) {
+            if (notes.isEmpty) {
+              return const Center(
+                child: Text(
+                  'لا توجد ملاحظات',
+                  style: AppTextStyles.bodySecondary,
                 ),
               );
-            },
-          );
-        },
+            }
+            return ListView.builder(
+              padding: const EdgeInsets.all(12),
+              itemCount: notes.length,
+              itemBuilder: (context, i) {
+                return _NoteCard(
+                  note: notes[i],
+                  noteService: noteService,
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => NoteDetailScreen(
+                        noteId: notes[i].id,
+                        noteService: noteService,
+                        initialNote: notes[i],
+                      ),
+                    ),
+                  ),
+                );
+              },
+            );
+          },
+        ),
       ),
     );
   }
@@ -154,10 +183,6 @@ class _NoteCard extends StatelessWidget {
                       ],
                     ),
                     const SizedBox(height: 4),
-                    // Text(
-                    //   '${note.farms} • #${note.trackNumber}',
-                    //   style: AppTextStyles.bodySecondary,
-                    // ),
                     Text(
                       'المزرعة: ${note.farms}',
                       style: AppTextStyles.caption,

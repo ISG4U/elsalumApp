@@ -1,8 +1,10 @@
+import 'package:elsalum_app/core/utils/constant.dart';
 import 'package:flutter/material.dart';
 import '../services/webview_service.dart';
 import '../services/connectivity_service.dart';
 import 'main_screen.dart';
 import 'notes/note_list_screen.dart';
+import '../core/utils/chach_service.dart';
 
 class ModeSelectionScreen extends StatelessWidget {
   final WebviewService webviewService;
@@ -38,16 +40,22 @@ class ModeSelectionScreen extends StatelessWidget {
 
               // Online Mode Button
               ElevatedButton.icon(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => MainScreen(
-                        webviewService: webviewService,
-                        connectivityService: connectivityService,
-                      ),
-                    ),
+                onPressed: () async {
+                  await CacheService.setData(
+                    key: CacheService.keyOpenMode,
+                    value: onlineMode,
                   );
+                  if (context.mounted) {
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => MainScreen(
+                          webviewService: webviewService,
+                          connectivityService: connectivityService,
+                        ),
+                      ),
+                    );
+                  }
                 },
                 icon: const Icon(Icons.language),
                 label: const Text(
@@ -67,13 +75,22 @@ class ModeSelectionScreen extends StatelessWidget {
 
               // Offline Mode Button
               OutlinedButton.icon(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => NoteListScreen(),
-                    ),
+                onPressed: () async {
+                  await CacheService.setData(
+                    key: CacheService.keyOpenMode,
+                    value: offlineMode,
                   );
+                  if (context.mounted) {
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => NoteListScreen(
+                          webviewService: webviewService,
+                          connectivityService: connectivityService,
+                        ),
+                      ),
+                    );
+                  }
                 },
                 icon: const Icon(Icons.note_alt_outlined),
                 label: const Text(

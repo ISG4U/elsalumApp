@@ -2,19 +2,18 @@ import 'package:flutter/material.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import '../services/webview_service.dart';
 import '../services/connectivity_service.dart';
-import '../widgets/app_drawer.dart';
+import '../core/utils/chach_service.dart';
+import 'mode_selection_screen.dart';
 import 'offline_screen.dart';
 
 class MainScreen extends StatefulWidget {
   final WebviewService webviewService;
   final ConnectivityService connectivityService;
-  // final NoteService noteService;
 
   const MainScreen({
     super.key,
     required this.webviewService,
     required this.connectivityService,
-    // required this.noteService,
   });
 
   @override
@@ -46,65 +45,59 @@ class _MainScreenState extends State<MainScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      // appBar: AppBar(
-      //   title: ValueListenableBuilder<String>(
-      //     valueListenable: widget.webviewService.pageTitle,
-      //     builder: (context, title, child) => Text(title),
-      //   ),
-      //   actions: [
-      //     IconButton(
-      //       icon: const Icon(Icons.refresh),
-      //       onPressed: () => widget.webviewService.reload(),
-      //     ),
-      //   ],
-      //   bottom: PreferredSize(
-      //     preferredSize: const Size.fromHeight(4.0),
-      //     child: ValueListenableBuilder<double>(
-      //       valueListenable: widget.webviewService.progress,
-      //       builder: (context, val, child) {
-      //         return val < 1.0
-      //             ? LinearProgressIndicator(value: val)
-      //             : const SizedBox.shrink();
-      //       },
-      //     ),
-      //   ),
-      // ),
-      drawer: AppDrawer(webviewService: widget.webviewService),
-      body: SafeArea(
-        child: Stack(
-          children: [
-            // The Main WebView
-            WebViewWidget(controller: widget.webviewService.controller),
-
-            // Loading Overlay
-            ValueListenableBuilder<bool>(
-              valueListenable: widget.webviewService.isLoading,
-              builder: (context, isLoading, child) {
-                return isLoading
-                    ? const Center(child: CircularProgressIndicator())
-                    : const SizedBox.shrink();
-              },
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) async {
+        if (didPop) return;
+        await CacheService.removeData(key: CacheService.keyOpenMode);
+        if (context.mounted) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (_) => ModeSelectionScreen(
+                webviewService: widget.webviewService,
+                connectivityService: widget.connectivityService,
+              ),
             ),
+          );
+        }
+      },
+      child: Scaffold(
+        body: SafeArea(
+          child: Stack(
+            children: [
+              // The Main WebView
+              WebViewWidget(controller: widget.webviewService.controller),
 
-            // Offline/Error Overlay
-            ValueListenableBuilder<bool>(
-              valueListenable: widget.connectivityService.isOnline,
-              builder: (context, isOnline, child) {
-                return ValueListenableBuilder<bool>(
-                  valueListenable: widget.webviewService.hasError,
-                  builder: (context, hasError, child) {
-                    if (!isOnline || hasError) {
-                      return OfflineScreen(
-                        onRetry: () => widget.webviewService.reload(),
-                      );
-                    }
-                    return const SizedBox.shrink();
-                  },
-                );
-              },
-            ),
-          ],
+              // Loading Overlay
+              ValueListenableBuilder<bool>(
+                valueListenable: widget.webviewService.isLoading,
+                builder: (context, isLoading, child) {
+                  return isLoading
+                      ? const Center(child: CircularProgressIndicator())
+                      : const SizedBox.shrink();
+                },
+              ),
+
+              // Offline/Error Overlay
+              ValueListenableBuilder<bool>(
+                valueListenable: widget.connectivityService.isOnline,
+                builder: (context, isOnline, child) {
+                  return ValueListenableBuilder<bool>(
+                    valueListenable: widget.webviewService.hasError,
+                    builder: (context, hasError, child) {
+                      if (!isOnline || hasError) {
+                        return OfflineScreen(
+                          onRetry: () => widget.webviewService.reload(),
+                        );
+                      }
+                      return const SizedBox.shrink();
+                    },
+                  );
+                },
+              ),
+            ],
+          ),
         ),
       ),
     );
