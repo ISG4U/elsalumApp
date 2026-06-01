@@ -68,13 +68,16 @@ class ElSalumApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
 
       // Arabic / RTL Support
-      locale: const Locale('ar'),
+      // locale: const Locale('ar'),
       // supportedLocales: const [Locale('ar')],
-      // localizationsDelegates: const [
-      //   GlobalMaterialLocalizations.delegate,
-      //   GlobalWidgetsLocalizations.delegate,
-      //   GlobalCupertinoLocalizations.delegate,
-      // ],
+
+      // Enforce RTL direction
+      builder: (context, child) {
+        return Directionality(
+          textDirection: TextDirection.rtl,
+          child: child ?? const SizedBox.shrink(),
+        );
+      },
 
       // Theme matching appConfig.json
       theme: ThemeData(

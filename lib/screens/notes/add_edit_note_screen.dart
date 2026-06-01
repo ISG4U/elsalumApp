@@ -1,3 +1,4 @@
+import 'package:elsalum_app/screens/note_detail_screen/card.dart';
 import 'package:elsalum_app/screens/notes/product_list_item.dart';
 import 'package:flutter/material.dart';
 import '../../core/database/app_database.dart';
@@ -125,20 +126,11 @@ class _AddEditNoteScreenState extends State<AddEditNoteScreen> {
                 const SizedBox(height: 16),
                 NoteMetadataFields.buildCard(
                   children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text('إجمالي الفاتورة', style: AppTextStyles.heading2),
-                        Text(
-                          _products
-                              .fold<double>(0, (sum, p) => sum + p.total)
-                              .toStringAsFixed(2),
-                          style: AppTextStyles.heading2.copyWith(
-                            color: AppColors.odooPurple,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ],
+                    TotalBillWidget(
+                      total: _products.fold<double>(
+                        0,
+                        (sum, p) => sum + p.total,
+                      ),
                     ),
                   ],
                 ),

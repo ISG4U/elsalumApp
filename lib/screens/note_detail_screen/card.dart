@@ -123,22 +123,36 @@ class TotalCard extends StatelessWidget {
       elevation: 2,
       child: Padding(
         padding: const EdgeInsets.all(16),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text('إجمالي الفاتورة', style: AppTextStyles.heading2),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Text(
-                total.toStringAsFixed(2),
-                style: AppTextStyles.heading1.copyWith(
-                  color: AppColors.odooPurple,
-                ),
-              ),
-            ),
-          ],
-        ),
+        child: TotalBillWidget(total: total),
       ),
+    );
+  }
+}
+
+class TotalBillWidget extends StatelessWidget {
+  const TotalBillWidget({
+    super.key,
+    required this.total,
+  });
+
+  final double total;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text('إجمالي الفاتورة', style: AppTextStyles.heading2),
+        const SizedBox(width: 16),
+        Expanded(
+          child: Text(
+            total.toStringAsFixed(2),
+            style: AppTextStyles.heading1.copyWith(
+              color: AppColors.odooPurple,
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
