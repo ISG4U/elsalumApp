@@ -1,7 +1,7 @@
 import 'package:elsalum_app/core/utils/chach_service.dart';
 import 'package:elsalum_app/core/utils/constant.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
+// import 'package:flutter_localizations/flutter_localizations.dart';
 import 'config/app_config.dart';
 
 import 'screens/mode_selection_screen.dart';
@@ -69,12 +69,12 @@ class ElSalumApp extends StatelessWidget {
 
       // Arabic / RTL Support
       locale: const Locale('ar'),
-      supportedLocales: const [Locale('ar')],
-      localizationsDelegates: const [
-        GlobalMaterialLocalizations.delegate,
-        GlobalWidgetsLocalizations.delegate,
-        GlobalCupertinoLocalizations.delegate,
-      ],
+      // supportedLocales: const [Locale('ar')],
+      // localizationsDelegates: const [
+      //   GlobalMaterialLocalizations.delegate,
+      //   GlobalWidgetsLocalizations.delegate,
+      //   GlobalCupertinoLocalizations.delegate,
+      // ],
 
       // Theme matching appConfig.json
       theme: ThemeData(

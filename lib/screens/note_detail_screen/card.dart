@@ -127,10 +127,13 @@ class TotalCard extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text('إجمالي الفاتورة', style: AppTextStyles.heading2),
-            Text(
-              total.toStringAsFixed(2),
-              style: AppTextStyles.heading1.copyWith(
-                color: AppColors.odooPurple,
+            const SizedBox(width: 16),
+            Expanded(
+              child: Text(
+                total.toStringAsFixed(2),
+                style: AppTextStyles.heading1.copyWith(
+                  color: AppColors.odooPurple,
+                ),
               ),
             ),
           ],
