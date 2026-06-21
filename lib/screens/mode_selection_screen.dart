@@ -5,13 +5,12 @@ import '../services/webview_service.dart';
 import '../services/connectivity_service.dart';
 import 'main_screen.dart';
 import 'notes/note_list_screen.dart';
-import '../core/utils/chach_service.dart';
+import '../core/utils/cache_service.dart';
 
 class ModeSelectionScreen extends StatelessWidget {
   final WebviewService webviewService;
   final ConnectivityService connectivityService;
 
-  // TODO: replace with your actual hosted privacy policy URL
   static const String _privacyPolicyUrl = 'https://www.youtube.com/';
 
   const ModeSelectionScreen({
@@ -45,7 +44,7 @@ class ModeSelectionScreen extends StatelessWidget {
               Expanded(
                 child: Center(
                   child: Image.asset(
-                    'assets/images/logo enhanced.jpg',
+                    'assets/images/logo_enhanced.jpg',
                     fit: BoxFit.contain,
                   ),
                 ),

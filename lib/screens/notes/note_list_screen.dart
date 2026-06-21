@@ -9,7 +9,7 @@ import 'add_edit_note_screen.dart';
 import 'package:intl/intl.dart';
 import '../../services/webview_service.dart';
 import '../../services/connectivity_service.dart';
-import '../../core/utils/chach_service.dart';
+import '../../core/utils/cache_service.dart';
 import '../mode_selection_screen.dart';
 import '../../services/note_filter_service.dart';
 import 'widgets/note_filter_dialog.dart';
