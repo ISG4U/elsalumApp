@@ -1,5 +1,6 @@
 import 'package:elsalum_app/core/utils/constant.dart';
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../services/webview_service.dart';
 import '../services/connectivity_service.dart';
 import 'main_screen.dart';
@@ -10,11 +11,24 @@ class ModeSelectionScreen extends StatelessWidget {
   final WebviewService webviewService;
   final ConnectivityService connectivityService;
 
+  // TODO: replace with your actual hosted privacy policy URL
+  static const String _privacyPolicyUrl = 'https://www.youtube.com/';
+
   const ModeSelectionScreen({
     super.key,
     required this.webviewService,
     required this.connectivityService,
   });
+
+  Future<void> _openPrivacyPolicy(BuildContext context) async {
+    final uri = Uri.parse(_privacyPolicyUrl);
+    final launched = await launchUrl(uri, mode: LaunchMode.externalApplication);
+    if (!launched && context.mounted) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('تعذر فتح سياسة الخصوصية')));
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -106,7 +120,19 @@ class ModeSelectionScreen extends StatelessWidget {
                   ),
                 ),
               ),
-              const SizedBox(height: 32),
+              const SizedBox(height: 16),
+
+              // Privacy Policy Button
+              TextButton.icon(
+                onPressed: () => _openPrivacyPolicy(context),
+                icon: const Icon(Icons.privacy_tip_outlined, size: 18),
+                label: const Text(
+                  'سياسة الخصوصية',
+                  style: TextStyle(fontSize: 14),
+                ),
+                style: TextButton.styleFrom(foregroundColor: Colors.grey[700]),
+              ),
+              const SizedBox(height: 16),
             ],
           ),
         ),
