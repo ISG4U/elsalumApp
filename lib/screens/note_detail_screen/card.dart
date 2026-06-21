@@ -7,6 +7,7 @@ import 'package:elsalum_app/screens/notes/product_list_item.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
+
 class HeaderCard extends StatelessWidget {
   final NotesTableData note;
   final NoteStatusInfo statusInfo;
