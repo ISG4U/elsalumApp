@@ -11,7 +11,7 @@ class ModeSelectionScreen extends StatelessWidget {
   final WebviewService webviewService;
   final ConnectivityService connectivityService;
 
-  static const String _privacyPolicyUrl = 'https://www.youtube.com/';
+  static const String _privacyPolicyUrl = 'https://elsalum.isg4u.com/.well-known/privacy-policy.html';
 
   const ModeSelectionScreen({
     super.key,
