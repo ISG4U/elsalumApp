@@ -1,4 +1,4 @@
-package co.median.android.elsalum_app
+package com.elsalum.pro
 
 import io.flutter.embedding.android.FlutterActivity
 

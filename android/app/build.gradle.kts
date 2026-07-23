@@ -6,7 +6,7 @@ plugins {
 }
 
 android {
-    namespace = "co.median.android.elsalum_app"
+    namespace = "com.elsalum.pro"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
@@ -21,7 +21,7 @@ android {
 
     defaultConfig {
         // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
-        applicationId = "com.isg4u.elsalum.app"
+        applicationId = "com.elsalum.pro"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion
