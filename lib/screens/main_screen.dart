@@ -21,12 +21,13 @@ class MainScreen extends StatefulWidget {
 }
 
 class _MainScreenState extends State<MainScreen> {
-  bool _wasOffline = false;
+  bool _wasOffline = true;
 
   @override
   void initState() {
     super.initState();
     widget.connectivityService.isOnline.addListener(_onConnectivityChanged);
+    _onConnectivityChanged();
   }
 
   @override
